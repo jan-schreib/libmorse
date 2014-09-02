@@ -1,78 +1,109 @@
+#define __GNU_SOURCE
+
 #include <assert.h>
 #include <ctype.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-enum { MORSE_HEAP_SIZE = 64 };
+#include "morse_decode.h"
 
-static char const *const morse_heap = "ETIANMSURWDKGOHVF\0L\0PJBXCYZQ\0\054\03\0\0\02\0\0\0\0\0\0\016\0\0\0\0\0\0\07\0\0\08\090\0\0";
+ssize_t morse_decode(char **textptr, size_t *n, char const *message);
+static int morse_heap_index(char const *code, char const **end);
+static char morse_token_consume(char const *code, char const **end);
+static size_t morse_decode_fixed(char *buf, size_t buflen, char const *message);
 
-int morse_heap_index(char const *code, char const **end) {
-  int i = 0;
-  int off = 1;
+static char const morse_heap[] =
+"ETIANMSURWDKGOHV"
+"F L PJBXCYZQ  54"
+" 3   2       16 "
+"      7   8 90"
+;
 
-  while(*code && isspace(*code)) {
-    ++code;
-  }
+enum { MORSE_HEAP_SIZE = sizeof(morse_heap) - 1 };
 
-  char const *p;
-  for(p = code; *p == '.' || *p == '-'; ++p) {
-    i   *= 2;
-    off *= 2;
+static int morse_heap_index(char const *code, char const **end) {
+	int         r   = 1;
+	char const *p   = NULL;
 
-    if(*p == '-') {
-      ++i;
-    }
-  }
+	/* Führende Whitespaces überspringen, ähnlich wie strtok. */
+	while(*code && isspace(*code)) {
+		++code;
+	}
 
-  // Wird -1, wenn die Schleife nicht durchlaufen wurde.
-  int r = off + i - 2;
+	/* Adressierung wie auf einem binären Heap (Punkt links, Strich rechts). */
+	for(p = code; *p == '.' || *p == '-'; ++p) {
+		r *= 2;
 
-  if(r >= MORSE_HEAP_SIZE || morse_heap[r] == '\0') {
-    r = -1; // Fehlerfall.
-  }
+		if(*p == '-') {
+			++r;
+		}
+	}
 
-  if(end != NULL) {
-    *end = p;
-  }
+	/* Wird -1, wenn die Schleife nicht durchlaufen wurde (also kein Token mehr da war
+	 * oder vor dem nächsten Token Unfug steht). Dadurch implizite Fehlerbehandlung.
+	 */
+	r -= 2;
 
-  return r;
+	if(r >= MORSE_HEAP_SIZE || r < 0 || morse_heap[r] == ' ') {
+		r = -1;
+	}
+
+	if(end != NULL) {
+		*end = p;
+	}
+
+	return r;
 }
 
-char morse_lookup(char const *code) {
-  return morse_heap[morse_heap_index(code, NULL)];
+static char morse_token_consume(char const *code, char const **end) {
+	int i = morse_heap_index(code, end);
+	return i >= 0 ? morse_heap[i] : '\0';
 }
 
-size_t decode_morse_message(char *buf, size_t buflen, char const *message) {
-  char const *p = message;
-  size_t i = 0;
-  int zeichen;
+static size_t morse_decode_fixed(char *buf, size_t buflen, char const *message) {
+	char const *p = message;
+	size_t i;
 
-  while(i + 1 < buflen && (zeichen = morse_heap_index(p, &p)) >= 0) {
-    buf[i++] = morse_heap[zeichen];
-  }
+	for(i = 0; i + 1 < buflen && (buf[i] = morse_token_consume(p, &p)); ++i) {
+		/* Intentionally left blank */
+	}
 
-  if(buflen != 0) {
-    buf[i] = '\0';
-  }
+	while(morse_token_consume(p, &p)) {
+		++i;
+	}
 
-  while(morse_heap_index(p, &p) >= 0) {
-    ++i;
-  }
-
-  return i;
+	return i;
 }
 
-int main(void) {
-  char buf[1024];
-  char decodebuf[1024];
+ssize_t morse_decode(char **textptr, size_t *n, char const *message) {
+	size_t msglen;
+	size_t space_needed;
 
-  fgets(buf, sizeof(buf), stdin);
+	if(textptr == NULL || n == NULL) {
+		return -1;
+	}
 
-  size_t n = decode_morse_message(decodebuf, sizeof(decodebuf), buf);
+	msglen = morse_decode_fixed(*textptr, *n, message);
+	space_needed = msglen + 1;
 
-  printf("%zu, %s\n", n, decodebuf);
+	if(space_needed > *n) {
+		size_t msglen2;
+		char *tmp;
 
-  return 0;
+		tmp = realloc(*textptr, space_needed);
+
+		if(tmp == NULL) {
+			return -1;
+		}
+
+		msglen2 = morse_decode_fixed(tmp, space_needed, message);
+		assert(msglen == msglen2);
+
+		*textptr = tmp;
+		*n       = space_needed;
+	}
+
+	return msglen;
 }
