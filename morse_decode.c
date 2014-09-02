@@ -32,7 +32,7 @@ static int morse_heap_index(char const *code, char const **end) {
 		++code;
 	}
 
-	/* Binary heap like method (point left, das right). */
+	/* Binary heap like method (point left, dash right). */
 	for(p = code; *p == '.' || *p == '-'; ++p) {
 		r *= 2;
 
