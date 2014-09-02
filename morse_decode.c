@@ -27,12 +27,12 @@ static int morse_heap_index(char const *code, char const **end) {
 	int         r   = 1;
 	char const *p   = NULL;
 
-	/* Führende Whitespaces überspringen, ähnlich wie strtok. */
+	/* Skip leading whitespaces */
 	while(*code && isspace(*code)) {
 		++code;
 	}
 
-	/* Adressierung wie auf einem binären Heap (Punkt links, Strich rechts). */
+	/* Binary heap like method (point left, das right). */
 	for(p = code; *p == '.' || *p == '-'; ++p) {
 		r *= 2;
 
@@ -41,8 +41,8 @@ static int morse_heap_index(char const *code, char const **end) {
 		}
 	}
 
-	/* Wird -1, wenn die Schleife nicht durchlaufen wurde (also kein Token mehr da war
-	 * oder vor dem nächsten Token Unfug steht). Dadurch implizite Fehlerbehandlung.
+	/* becomes -1 if loop is not running.
+	 * implicit error handling.
 	 */
 	r -= 2;
 
