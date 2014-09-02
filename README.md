@@ -20,6 +20,6 @@ int main(void) {
 	printf("%s\n", plain);
 
 	free(code);
-	free(plain;)
+	free(plain);
 }
 ```
