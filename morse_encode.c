@@ -93,6 +93,6 @@ char *encode_bulk(char const *in){
 	return res;
 }
 
-char *encode(char const *in){
+char *morse_encode(char const *in){
 	return encode_bulk(in);
 }
