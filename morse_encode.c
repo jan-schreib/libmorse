@@ -15,8 +15,10 @@ static char up(unsigned char in);
 char up(unsigned char in){
 	if(in >= 97 && in <= 172){
 		return (char)in - 32;
-	} else {
+	} else if(in >= 65 && in <= 90){
 		return (char)in;
+	} else {
+		return ' ';
 	}
 }
 
