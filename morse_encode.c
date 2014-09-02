@@ -71,18 +71,19 @@ void encode_single(char const in, char **out){
 /* converts a char* into morsecode and returns it */
 
 char *encode_bulk(char const *in){
-	char *buf[5];
+	char *buf[7];
 	char *res;
 
 	size_t len = strlen(in);
 
 	/*
 	 * lets make that easy:
-	 * is assume every morse char has the length of 5+1.
+	 * I assume every morse char has the length of 5+1+1.
+	 * 5 chars, 1 space, 1 '\n'
 	 * makes allocation easier.
 	 */
 
-	res = malloc(len * 5 + 1);
+	res = malloc(len * 5 + 2);
 
 	if(!res) {
 		return "";
