@@ -6,13 +6,14 @@
 #include "morse_encode.h"
 
 /* prototypes */
+
 static void encode_single(char const in, char **out);
 static char *encode_bulk(char const *in);
 static char up(unsigned char in);
 
 /* uppercase chars only */
 
-char up(unsigned char in){
+char up(unsigned char in) {
 	if(in >= 97 && in <= 172){
 		return (char)in - 32;
 	} else if(in >= 65 && in <= 90){
@@ -24,7 +25,7 @@ char up(unsigned char in){
 
 /* encode a single char and safes it in out */
 
-void encode_single(char const in, char **out){
+void encode_single(char const in, char **out) {
 	char up_in = up(in);
 
 	switch(up_in) {
@@ -70,7 +71,7 @@ void encode_single(char const in, char **out){
 
 /* converts a char* into morsecode and returns it */
 
-char *encode_bulk(char const *in){
+char *encode_bulk(char const *in) {
 	char *buf[7];
 	char *res;
 
@@ -85,17 +86,17 @@ char *encode_bulk(char const *in){
 
 	res = malloc(len * 5 + 2);
 
-	if(!res) {
+	if(res == NULL) {
 		return "";
 	}
 
-	for(unsigned int i = 0; i < len; i++){
+	for(unsigned int i = 0; i < len; i++) {
 		encode_single(in[i], buf);
 		strcat(res, *buf);
 	}
 	return res;
 }
 
-char *morse_encode(char const *in){
+char *morse_encode(char const *in) {
 	return encode_bulk(in);
 }
