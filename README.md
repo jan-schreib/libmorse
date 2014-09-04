@@ -12,7 +12,7 @@ int main(void) {
 	char *plain = NULL;
 	size_t len = 0;
 
-	char *code = encode(foo);
+	char *code = morse_encode(foo);
 
 	morse_decode(&plain, &len, code);
 	
